@@ -252,4 +252,35 @@ public class AttendanceRecordDAO {
             );
         }
     }
+    
+    public ArrayList<AttendanceRecord> getAttendanceSheetWithDetails(int sessionId) {
+
+        ArrayList<AttendanceRecord> list = new ArrayList<>();
+
+        String sql =
+            "SELECT ar.student_id, s.full_name, ar.status " +
+            "FROM attendance_records ar " +
+            "JOIN students s ON ar.student_id = s.student_id " +
+            "WHERE ar.session_id = ?";
+
+        try {
+            Connection conn = DBConnect.connect();
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.setInt(1, sessionId);
+            ResultSet rs = pstmt.executeQuery();
+
+            while (rs.next()) {
+                AttendanceRecord record = new AttendanceRecord();
+                record.setStudentId(rs.getString("student_id"));
+                record.setFullName(rs.getString("full_name"));
+                record.setStatus(rs.getString("status"));
+                list.add(record);
+            }
+
+        } catch (Exception e) {
+            System.out.println("Get sheet error: " + e.getMessage());
+        }
+
+        return list;
+    }
 }
