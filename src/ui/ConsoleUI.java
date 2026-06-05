@@ -1,6 +1,7 @@
 package ui;
 
 import java.util.ArrayList;
+
 import java.util.Scanner;
 
 import dao.StudentDAO;
@@ -19,6 +20,9 @@ import dao.AttendanceRecordDAO;
 import dao.AttendanceSessionDAO;
 import model.AttendanceSession;
 import model.AttendanceRecord;
+import report.ReportGenerator;
+
+import java.sql.Connection;
 
 public class ConsoleUI {
 
@@ -93,8 +97,7 @@ public class ConsoleUI {
                     break;
                     
                 case 5:
-                    System.out.println(
-                        "Reports Module Coming Soon...");
+                    reportsMenu();
                     break;
 
                 case 6:
@@ -901,4 +904,116 @@ public class ConsoleUI {
 
         recordDAO.viewAttendanceSheet(sessionId);
     }
+    
+	 // =========================
+	 // REPORTS MENU
+	 // =========================
+	 private void reportsMenu() {
+	
+	     boolean running = true;
+	
+	     while (running) {
+	
+	         System.out.println("\n===== REPORTS =====");
+	         System.out.println("1. Attendance Report by Session");
+	         System.out.println("2. Student List Report");
+	         System.out.println("3. Back");
+	
+	         System.out.print("Enter Choice: ");
+	         int choice = scanner.nextInt();
+	         scanner.nextLine();
+	
+	         switch (choice) {
+	
+	             case 1:
+	                 generateAttendanceReport();
+	                 break;
+	
+	             case 2:
+	                 generateStudentReport();
+	                 break;
+	
+	             case 3:
+	                 running = false;
+	                 break;
+	
+	             default:
+	                 System.out.println("Invalid choice!");
+	         }
+	     }
+	 }
+	
+	 private void generateAttendanceReport() {
+
+		    System.out.print("Enter Session ID: ");
+		    int sessionId = scanner.nextInt();
+		    scanner.nextLine();
+
+		    // Fetch session to get classId and date
+		    String sessionSql =
+		    	    "SELECT ats.session_date, c.class_name, t.full_name AS teacher_name, c.room, c.schedule " +
+		    	    "FROM attendance_sessions ats " +
+		    	    "JOIN classes c ON ats.class_id = c.id " +
+		    	    "LEFT JOIN teachers t ON c.teacher_id = t.teacher_id " +
+		    	    "WHERE ats.id = ?";
+		    
+		    String subjectName = "", sessionDate = "", professor = "", classroom = "", schedule = "";
+
+		    try {
+		        Connection conn = database.DBConnect.connect();
+		        java.sql.PreparedStatement pstmt = conn.prepareStatement(sessionSql);
+		        pstmt.setInt(1, sessionId);
+		        java.sql.ResultSet rs = pstmt.executeQuery();
+
+		        if (rs.next()) {
+		            subjectName = rs.getString("class_name");
+		            sessionDate = rs.getString("session_date");
+		            professor = rs.getString("teacher_name") != null ? rs.getString("teacher_name") : "N/A";
+		            classroom   = rs.getString("room");
+		            schedule    = rs.getString("schedule");
+		        } else {
+		            System.out.println("Session not found.");
+		            return;
+		        }
+		    } catch (Exception e) {
+		        System.out.println("Failed to fetch session details: " + e.getMessage());
+		        return;
+		    }
+
+		    ArrayList<AttendanceRecord> records = recordDAO.getAttendanceSheet(sessionId);
+
+		    if (records.isEmpty()) {
+		        System.out.println("No records found for that session.");
+		        return;
+		    }
+
+		    try {
+		        String outputPath = "attendance_session_" + sessionId + ".pdf";
+		        ReportGenerator.generateAttendancePDF(
+		            records, outputPath,
+		            subjectName, sessionDate, professor, classroom, schedule
+		        );
+		        System.out.println("Report saved: " + outputPath);
+		    } catch (Exception e) {
+		        System.out.println("Failed to generate report: " + e.getMessage());
+		    }
+		}
+	
+	 private void generateStudentReport() {
+	
+	     ArrayList<Student> students = studentDAO.getAllStudents();
+	
+	     if (students.isEmpty()) {
+	         System.out.println("No students found.");
+	         return;
+	     }
+	
+	     try {
+	         String outputPath = "student_list_report.pdf";
+	         ReportGenerator.generateStudentPDF(students, outputPath);
+	         System.out.println("Report saved: " + outputPath);
+	     } catch (Exception e) {
+	         System.out.println("Failed to generate report: " + e.getMessage());
+	     }
+	 }
 }

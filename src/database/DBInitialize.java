@@ -121,23 +121,14 @@ public class DBInitialize {
             java.sql.ResultSet rs = stmt.executeQuery(checkSQL);
             
             if (rs.next() && rs.getInt(1) == 0) {
-                // Hash password using PasswordUtil
-                util.PasswordUtil password = new util.PasswordUtil();
-                String hashedPassword = util.PasswordUtil.hashPassword("admin123");
                 
-                String insertSQL = String.format(
-                    "INSERT INTO users (username, password, role) VALUES ('admin', '%s', 'admin')",
-                    hashedPassword.replace("'", "''")
-                );
+                // Directly using plain text password for now
+                String insertSQL = "INSERT INTO users (username, password, role) VALUES ('admin', 'admin123', 'admin')";
                 stmt.executeUpdate(insertSQL);
                 System.out.println("✓ Default admin user created (username: admin, password: admin123)");
                 
                 // Insert a sample teacher
-                String teacherPassword = util.PasswordUtil.hashPassword("teacher123");
-                String insertTeacher = String.format(
-                    "INSERT INTO users (username, password, role) VALUES ('teacher1', '%s', 'teacher')",
-                    teacherPassword.replace("'", "''")
-                );
+                String insertTeacher = "INSERT INTO users (username, password, role) VALUES ('teacher1', 'teacher123', 'teacher')";
                 stmt.executeUpdate(insertTeacher);
                 System.out.println("✓ Sample teacher user created (username: teacher1, password: teacher123)");
             }
