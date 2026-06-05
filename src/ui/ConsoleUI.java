@@ -21,6 +21,8 @@ import dao.AttendanceSessionDAO;
 import model.AttendanceSession;
 import model.AttendanceRecord;
 import report.ReportGenerator;
+import report.JasperReportEngine;
+
 
 import java.sql.Connection;
 
@@ -34,6 +36,8 @@ public class ConsoleUI {
     private EnrollmentDAO enrollmentDAO;
     
     private ClassDAO classDAO;
+    
+    private final ReportGenerator reportGenerator = new ReportGenerator(new JasperReportEngine());
 
     // CONSTRUCTOR
     public ConsoleUI() {
@@ -989,7 +993,7 @@ public class ConsoleUI {
 
 		    try {
 		        String outputPath = "attendance_session_" + sessionId + ".pdf";
-		        ReportGenerator.generateAttendancePDF(
+		        reportGenerator.generateAttendancePDF(
 		            records, outputPath,
 		            subjectName, sessionDate, professor, classroom, schedule
 		        );
@@ -1010,7 +1014,7 @@ public class ConsoleUI {
 	
 	     try {
 	         String outputPath = "student_list_report.pdf";
-	         ReportGenerator.generateStudentPDF(students, outputPath);
+	         reportGenerator.generateStudentPDF(students, outputPath);
 	         System.out.println("Report saved: " + outputPath);
 	     } catch (Exception e) {
 	         System.out.println("Failed to generate report: " + e.getMessage());

@@ -1,71 +1,41 @@
 package report;
 
-import net.sf.jasperreports.engine.*;
-import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.ArrayList;
+import java.util.HashMap;
 import model.Student;
-import net.sf.jasperreports.engine.export.JRPdfExporter;
-import net.sf.jasperreports.export.SimpleExporterInput;
-import net.sf.jasperreports.export.SimpleOutputStreamExporterOutput;
-import net.sf.jasperreports.export.SimplePdfExporterConfiguration;
 
 public class ReportGenerator {
-
-	public static void generateAttendancePDF(
+	
+	private final ReportEngine engine;
+	
+	public ReportGenerator(ReportEngine engine) {
+		this.engine = engine;
+	}
+	
+	public void generateAttendancePDF(
 	        List<?> data,
 	        String outputPath,
 	        String subjectName,
 	        String sessionDate,
 	        String professor,
 	        String classroom,
-	        String schedule) throws JRException {
-
-	    JasperReport jasperReport = JasperCompileManager.compileReport(
-	        "reports/attendance_report.jrxml"
-	    );
-
-	    JRBeanCollectionDataSource dataSource = new JRBeanCollectionDataSource(data);
-
-	    Map<String, Object> params = new HashMap<>();
-	    params.put("subjectName", subjectName);
-	    params.put("sessionDate", sessionDate);
-	    params.put("professor",   professor);
-	    params.put("classroom",   classroom);
-	    params.put("schedule",    schedule);
-
-	    JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, params, dataSource);
-
-	    JRPdfExporter exporter = new JRPdfExporter();
-	    exporter.setExporterInput(new SimpleExporterInput(jasperPrint));
-	    exporter.setExporterOutput(new SimpleOutputStreamExporterOutput(outputPath));
-	    exporter.setConfiguration(new SimplePdfExporterConfiguration());
-	    exporter.exportReport();
-
-	    System.out.println("Report saved to: " + outputPath);
+	        String schedule) throws Exception {
+		
+		Map<String, Object> params = new HashMap<>();
+		params.put("subjectName", subjectName);
+		params.put("sessionDate", sessionDate);
+		params.put("professor", professor);
+		params.put("classroom", classroom);
+		params.put("schedule", schedule);
+		
+		engine.generatePDF("reports/attendance_report.jrxml", data, params, outputPath);
 	}
     
-    public static void generateStudentPDF(ArrayList<Student> students, String outputPath) throws JRException {
-
-        JasperReport jasperReport = JasperCompileManager.compileReport(
-            "reports/student_list_report.jrxml"
-        );
-
-        JRBeanCollectionDataSource dataSource =
-            new JRBeanCollectionDataSource(students);
-
-        Map<String, Object> params = new HashMap<>();
-
-        JasperPrint jasperPrint = JasperFillManager.fillReport(
-            jasperReport, params, dataSource
-        );
-
-        JRPdfExporter exporter = new JRPdfExporter();
-        exporter.setExporterInput(new SimpleExporterInput(jasperPrint));
-        exporter.setExporterOutput(new SimpleOutputStreamExporterOutput(outputPath));
-        SimplePdfExporterConfiguration config = new SimplePdfExporterConfiguration();
-        exporter.setConfiguration(config);
-        exporter.exportReport();
-
-        System.out.println("Report saved to: " + outputPath);
+    public void generateStudentPDF(
+    		ArrayList<Student> students, 
+    		String outputPath) throws Exception {
+    	engine.generatePDF("reports/student_list_report.jrxml", students, new HashMap<>(), outputPath);
     }
 }
