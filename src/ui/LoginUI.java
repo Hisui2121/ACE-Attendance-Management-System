@@ -1,94 +1,106 @@
 package ui;
 
-import java.util.Scanner;
-import service.AuthenticationService;
-import model.Role;
-import model.RolePermission;
-import util.Logger;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
+import javafx.scene.control.*;
+import javafx.scene.layout.*;
+import javafx.scene.text.Font;
+import javafx.scene.text.FontWeight;
+import app.Main; // Para makatawag tayo pabalik sa Main class para mag-switch scene
 
 public class LoginUI {
-    
-    private Scanner scanner;
-    private AuthenticationService authService;
-    
-    public LoginUI(Scanner scanner, AuthenticationService authService) {
-        this.scanner = scanner;
-        this.authService = authService;
-    }
-    
-    public boolean showLoginMenu() {
-        boolean running = true;
+
+    public Scene getScene(Main mainApp) {
+        // Main container (StackPane for background image)
+        StackPane root = new StackPane();
+        root.getStyleClass().add("login-bg");
+
+        // Split Layout using HBox
+        HBox splitLayout = new HBox();
+        splitLayout.setAlignment(Pos.CENTER);
+
+        // --- LEFT SIDE (Branding) ---
+        VBox leftSide = new VBox(10);
+        leftSide.setAlignment(Pos.CENTER_LEFT);
+        leftSide.setPadding(new Insets(50));
+        HBox.setHgrow(leftSide, Priority.ALWAYS); // Takes up remaining space
         
-        while (running) {
-            System.out.println("\n");
-            System.out.println("╔════════════════════════════════════════╗");
-            System.out.println("║  PRESENCE ATTENDANCE SYSTEM - LOGIN    ║");
-            System.out.println("╚════════════════════════════════════════╝");
-            System.out.println("\n1. Login");
-            System.out.println("2. View Available Roles");
-            System.out.println("3. Exit System");
-            System.out.print("\nEnter Choice: ");
-            
-            int choice = getIntInput();
-            
-            switch (choice) {
-                case 1:
-                    if (performLogin()) {
-                        return true;
-                    }
-                    break;
-                    
-                case 2:
-                    showAvailableRoles();
-                    break;
-                    
-                case 3:
-                    System.out.println("\n✓ Exiting system. Goodbye!");
-                    return false;
-                    
-                default:
-                    System.out.println("\n✗ Invalid choice! Please try again.");
-            }
-        }
-        
-        return false;
-    }
-    
-    private boolean performLogin() {
-        System.out.print("\nEnter Username: ");
-        String username = scanner.nextLine().trim();
-        
-        System.out.print("Enter Password: ");
-        String password = scanner.nextLine();
-        
-        if (authService.login(username, password)) {
-            return true;
-        } else {
-            System.out.println("Please try again or check credentials.");
-            return false;
-        }
-    }
-    
-    private void showAvailableRoles() {
-        System.out.println("\n╔════════════════════════════════════════╗");
-        System.out.println("║         AVAILABLE USER ROLES           ║");
-        System.out.println("╚════════════════════════════════════════╝\n");
-        
-        for (Role role : Role.values()) {
-            System.out.println("📋 " + role.name() + " - " + role.getDescription());
-            RolePermission.printPermissions(role);
-            System.out.println();
-        }
-    }
-    
-    private int getIntInput() {
         try {
-            int value = scanner.nextInt();
-            scanner.nextLine();
-            return value;
+            // Siguraduhing tama ang pangalan ng file mo dito
+            javafx.scene.image.Image logoImage = new javafx.scene.image.Image(getClass().getResourceAsStream("/assets/logo.png"));
+            javafx.scene.image.ImageView logoView = new javafx.scene.image.ImageView(logoImage);
+            logoView.setFitWidth(100); // Pwede mong lakihan o liitan ito
+            logoView.setPreserveRatio(true);
+            leftSide.getChildren().add(logoView); // I-add muna ang logo sa VBox
         } catch (Exception e) {
-            scanner.nextLine();
-            return -1;
+            System.out.println("Logo not found in assets folder.");
         }
+
+        Label brandTitle = new Label("MyAcePortal");
+        brandTitle.setFont(Font.font("System", FontWeight.BOLD, 48));
+        brandTitle.setStyle("-fx-text-fill: #FFC107; -fx-effect: dropshadow(two-pass-box, rgba(0,0,0,0.8), 5, 0, 0, 2);");
+        
+        Label brandSub = new Label("Sign in to your account");
+        brandSub.setFont(Font.font("System", FontWeight.BOLD, 20));
+        brandSub.setStyle("-fx-text-fill: white; -fx-effect: dropshadow(two-pass-box, rgba(0,0,0,0.8), 5, 0, 0, 2);");
+
+        leftSide.getChildren().addAll(brandTitle, brandSub);
+
+        // --- RIGHT SIDE (Login Form) ---
+        VBox rightSide = new VBox();
+        rightSide.setAlignment(Pos.CENTER);
+        rightSide.setPadding(new Insets(0, 80, 0, 40));
+
+        // The White Card
+        VBox loginCard = new VBox(20);
+        loginCard.getStyleClass().add("login-card");
+        loginCard.setMaxWidth(450);
+        loginCard.setAlignment(Pos.TOP_LEFT);
+
+        Label lblSignIn = new Label("Sign In");
+        lblSignIn.setFont(Font.font("System", FontWeight.BOLD, 28));
+        
+        Label lblWelcome = new Label("Welcome back admin! To get started, enter the following:");
+        lblWelcome.setWrapText(true);
+        lblWelcome.setStyle("-fx-text-fill: #475569;");
+
+        VBox emailBox = new VBox(5);
+        Label lblEmail = new Label("Email Address");
+        lblEmail.setStyle("-fx-font-size: 12px; -fx-text-fill: #475569;");
+        TextField txtEmail = new TextField();
+        txtEmail.getStyleClass().add("login-input");
+        emailBox.getChildren().addAll(lblEmail, txtEmail);
+
+        VBox passBox = new VBox(5);
+        Label lblPass = new Label("Password");
+        lblPass.setStyle("-fx-font-size: 12px; -fx-text-fill: #475569;");
+        PasswordField txtPass = new PasswordField();
+        txtPass.getStyleClass().add("login-input");
+        passBox.getChildren().addAll(lblPass, txtPass);
+
+        Button btnLogin = new Button("Sign in");
+        btnLogin.getStyleClass().add("dark-button");
+        
+        // LOGIN ACTION LOGIC
+        btnLogin.setOnAction(e -> {
+            // TODO: Add proper DAO checking here later. For now, bypass to Dashboard.
+            if(txtEmail.getText().equals("admin") && txtPass.getText().equals("123")) {
+                mainApp.loadDashboard(); 
+            } else {
+                Alert alert = new Alert(Alert.AlertType.ERROR, "Invalid Credentials!");
+                alert.show();
+            }
+        });
+
+        loginCard.getChildren().addAll(lblSignIn, lblWelcome, emailBox, passBox, btnLogin);
+        rightSide.getChildren().add(loginCard);
+
+        splitLayout.getChildren().addAll(leftSide, rightSide);
+        root.getChildren().add(splitLayout);
+
+        Scene scene = new Scene(root, 1100, 700);
+        scene.getStylesheets().add(getClass().getResource("/css/styles.css").toExternalForm());
+        return scene;
     }
 }

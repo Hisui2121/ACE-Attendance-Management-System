@@ -1,0 +1,114 @@
+/* src/css/styles.css */
+
+/* General App Styling */
+.root {
+    -fx-font-family: "Segoe UI", "Open Sans", sans-serif;
+    -fx-background-color: #F4F6F8; 
+}
+
+/* --- LOGIN UI STYLES --- */
+.login-bg {
+    /* Siguraduhing may bg_login.jpg ka sa assets folder */
+    -fx-background-image: url('../assets/bg_login.jpg');
+    -fx-background-size: cover;
+    -fx-background-position: center center;
+}
+
+.login-card {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #FFC107; /* Yellow top border */
+    -fx-border-width: 6 0 0 0;
+    -fx-padding: 40;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 15, 0, 0, 5);
+}
+
+.login-input {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #E2E8F0;
+    -fx-border-radius: 4;
+    -fx-padding: 10;
+    -fx-font-size: 14px;
+}
+
+.login-input:focused {
+    -fx-border-color: #FFC107;
+}
+
+/* --- SIDEBAR STYLES (EduTrack Vibe) --- */
+.sidebar {
+    -fx-background-color: #F8FAFC;
+    -fx-border-color: #E2E8F0;
+    -fx-border-width: 0 1 0 0;
+}
+
+.sidebar-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #475569;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-alignment: CENTER_LEFT;
+    -fx-padding: 12 20;
+    -fx-cursor: hand;
+}
+
+.sidebar-button:hover {
+    -fx-background-color: #E2E8F0;
+}
+
+.sidebar-button-active {
+    -fx-background-color: #FFC107; /* Yellow highlight */
+    -fx-text-fill: #1E293B;
+    -fx-background-radius: 4;
+}
+
+/* --- DASHBOARD STATS & CARDS --- */
+.content-pane {
+    -fx-background-color: #F4F6F8;
+}
+
+.stat-card {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #E2E8F0;
+    -fx-border-width: 1 1 1 1;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-padding: 20;
+    /* EduTrack has a thick top border for some cards, let's add it to stats */
+    -fx-border-color: #FFC107 #E2E8F0 #E2E8F0 #E2E8F0;
+    -fx-border-width: 3 1 1 1;
+}
+
+.stat-title {
+    -fx-text-fill: #64748B;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.stat-value {
+    -fx-text-fill: #1E293B;
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+}
+
+/* Buttons */
+.primary-button {
+    -fx-background-color: #FFC107;
+    -fx-text-fill: #1E293B;
+    -fx-font-weight: bold;
+    -fx-background-radius: 4;
+    -fx-padding: 10 20;
+    -fx-cursor: hand;
+}
+
+.primary-button:hover {
+    -fx-background-color: #F5B000;
+}
+
+.dark-button {
+    -fx-background-color: #1E293B; /* Dark button for Login */
+    -fx-text-fill: #FFFFFF;
+    -fx-font-weight: bold;
+    -fx-background-radius: 2;
+    -fx-padding: 12 25;
+    -fx-cursor: hand;
+}

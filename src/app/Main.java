@@ -1,23 +1,33 @@
+// Sa loob ng iyong Main.java
 package app;
 
-import java.util.ArrayList;
+import javafx.application.Application;
+import javafx.stage.Stage;
+import ui.LoginUI;
+import ui.DashboardUI;
 
-import dao.StudentDAO;
-import database.DBInitialize;
-import model.Student;
+public class Main extends Application {
+    private Stage window;
 
-import ui.ConsoleUI;
+    @Override
+    public void start(Stage primaryStage) {
+        window = primaryStage;
+        window.setTitle("ACE University Portal");
+        
+        // Load Login First
+        LoginUI login = new LoginUI();
+        window.setScene(login.getScene(this)); // Pinasa natin 'this' para ma-access ang loadDashboard
+        window.centerOnScreen();
+        window.show();
+    }
 
+    public void loadDashboard() {
+        DashboardUI dashboard = new DashboardUI();
+        window.setScene(dashboard.getScene());
+        window.centerOnScreen();
+    }
 
-public class Main {
-	public static void main(String[] args) {
-
-        System.out.println("Starting System...");
-
-        // INITIALIZE DATABASE
-        DBInitialize.initialize();
-        ConsoleUI ui = new ConsoleUI();
-
-        ui.start();
+    public static void main(String[] args) {
+        launch(args);
     }
 }
