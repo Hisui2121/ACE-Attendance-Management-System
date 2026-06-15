@@ -1,0 +1,158 @@
+/* src/css/styles.css */
+
+/* General App Styling */
+.root {
+    -fx-font-family: "Segoe UI", "Open Sans", sans-serif;
+    -fx-background-color: #F4F6F8; 
+}
+
+/* --- LOGIN UI STYLES --- */
+.login-bg {
+    /* Siguraduhing may bg_login.jpg ka sa assets folder */
+    -fx-background-image: url('../assets/bg_login.jpg');
+    -fx-background-size: cover;
+    -fx-background-position: center center;
+}
+
+.login-card {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #FFC107; /* Yellow top border */
+    -fx-border-width: 6 0 0 0;
+    -fx-padding: 40;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.3), 15, 0, 0, 5);
+}
+
+.login-input {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #E2E8F0;
+    -fx-border-radius: 4;
+    -fx-padding: 10;
+    -fx-font-size: 14px;
+}
+
+.login-input:focused {
+    -fx-border-color: #FFC107;
+}
+
+/* --- SIDEBAR STYLES (EduTrack Vibe) --- */
+.sidebar {
+    -fx-background-color: #F8FAFC;
+    -fx-border-color: #E2E8F0;
+    -fx-border-width: 0 1 0 0;
+}
+
+.sidebar-button, .sidebar-button-active {
+    -fx-background-color: transparent;
+    -fx-text-fill: #475569;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-alignment: CENTER_LEFT;   /* left aligned */
+    -fx-padding: 12 20;
+    -fx-cursor: hand;
+    -fx-background-radius: 4;
+}
+
+.sidebar-button:hover {
+    -fx-background-color: #E2E8F0;
+}
+
+.sidebar-button-active {
+    -fx-background-color: #FFC107; /* Yellow highlight */
+    -fx-text-fill: #1E293B;
+    -fx-background-radius: 4;
+}
+
+/* Ensure pressed / armed state does not change font or alignment */
+.sidebar-button:armed, .sidebar-button-active:armed {
+    -fx-translate-y: 0; /* avoid movement */
+    -fx-font-size: 14px; /* keep same size */
+    -fx-alignment: CENTER_LEFT;
+}
+
+/* --- DASHBOARD STATS & CARDS --- */
+.content-pane {
+    -fx-background-color: #F4F6F8;
+}
+
+.stat-card {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #E2E8F0;
+    -fx-border-width: 1 1 1 1;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-padding: 20;
+    /* EduTrack has a thick top border for some cards, let's add it to stats */
+    -fx-border-color: #FFC107 #E2E8F0 #E2E8F0 #E2E8F0;
+    -fx-border-width: 3 1 1 1;
+}
+
+.stat-title {
+    -fx-text-fill: #64748B;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.stat-value {
+    -fx-text-fill: #1E293B;
+    -fx-font-size: 28px;
+    -fx-font-weight: bold;
+}
+
+/* BUTTONS - Uniform design */
+.primary-button, .secondary-button, .dark-button {
+    -fx-font-family: "Segoe UI", "Open Sans", sans-serif;
+    -fx-font-size: 13px;          /* consistent font size */
+    -fx-font-weight: bold;
+    -fx-background-radius: 6;
+    -fx-padding: 8 18;            /* consistent padding */
+    -fx-pref-height: 36px;        /* uniform height */
+    -fx-cursor: hand;
+    -fx-border-width: 0;
+}
+
+.primary-button {
+    -fx-background-color: #FFC107;
+    -fx-text-fill: #1E293B;
+}
+.primary-button:hover { -fx-background-color: #F5B000; }
+
+.secondary-button {
+    -fx-background-color: #1E293B;
+    -fx-text-fill: #FFFFFF;
+}
+.secondary-button:hover { -fx-background-color: #16202a; }
+
+.dark-button {
+    -fx-background-color: #1E293B;
+    -fx-text-fill: #FFFFFF;
+}
+
+/* TABLE - cleaner look */
+.table-view {
+    -fx-background-color: transparent;
+    -fx-border-color: #E2E8F0;
+    -fx-border-width: 1;
+    -fx-table-cell-border-color: transparent;
+}
+.table-view .column-header-background {
+    -fx-background-color: linear-gradient(#f6f7f9, #eef2f6);
+}
+.table-view .column-header, .table-view .column-header .label {
+    -fx-font-weight: bold;
+    -fx-text-fill: #1E293B;
+}
+.table-view .cell {
+    -fx-padding: 6 8;
+}
+.table-view .row:odd { -fx-background-color: #FFFFFF; }
+.table-view .row:even { -fx-background-color: #FBFCFD; }
+
+/* CARD (content container) refinement */
+.card {
+    -fx-background-color: #FFFFFF;
+    -fx-border-color: #E2E8F0;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-padding: 18;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.06), 8, 0, 0, 4);
+}

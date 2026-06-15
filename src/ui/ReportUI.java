@@ -379,6 +379,7 @@ public class ReportUI {
             refreshed.add(0, sent);
             sessionDateFilter.setItems(refreshed);
             sessionDateFilter.getSelectionModel().selectFirst();
+            util.EventBus.fireSessionChanged();
         });
 
         // Masterlist-specific controls (course, year, class) and table

@@ -1,106 +1,111 @@
 package model;
 
-public class Student {
+/**
+ * Represents a student enrolled in the system.
+ *
+ * OOP CONCEPTS DEMONSTRATED:
+ * - Inheritance      : extends Person, inheriting fullName and email.
+ * - Method Overriding: overrides getPersonId(), getRole(), getDisplayInfo(),
+ *                      and toString() from Person.
+ * - Dynamic Binding  : when Student is referenced as a Person, Java
+ *                      automatically calls these overridden versions at runtime.
+ */
+public class Student extends Person {
 
-    private int id;
+    private int    id;
     private String studentId;
-    private String fullName;
     private String course;
     private String yearLevel;
-    private String email;
 
-    // EMPTY CONSTRUCTOR
+    // =========================================================
+    // CONSTRUCTORS
+    // =========================================================
     public Student() {
-
+        super();
     }
 
-    // CONSTRUCTOR WITHOUT DB ID
+    /** Constructor without DB auto-increment id */
     public Student(String studentId,
                    String fullName,
                    String course,
                    String yearLevel,
                    String email) {
-
+        super(fullName, email);   // calls Person(fullName, email)
         this.studentId = studentId;
-        this.fullName = fullName;
-        this.course = course;
+        this.course    = course;
         this.yearLevel = yearLevel;
-        this.email = email;
     }
 
-    // FULL CONSTRUCTOR
+    /** Full constructor */
     public Student(int id,
                    String studentId,
                    String fullName,
                    String course,
                    String yearLevel,
                    String email) {
-
-        this.id = id;
+        super(fullName, email);
+        this.id        = id;
         this.studentId = studentId;
-        this.fullName = fullName;
-        this.course = course;
+        this.course    = course;
         this.yearLevel = yearLevel;
-        this.email = email;
     }
 
-    // =========================
-    // GETTERS & SETTERS
-    // =========================
+    // =========================================================
+    // OVERRIDDEN ABSTRACT METHODS (Method Overriding)
+    // =========================================================
 
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-
-    public String getStudentId() {
+    /**
+     * @Override getPersonId() from Person
+     * Dynamic binding: Person ref → returns studentId at runtime.
+     */
+    @Override
+    public String getPersonId() {
         return studentId;
     }
 
-    public void setStudentId(String studentId) {
-        this.studentId = studentId;
+    /**
+     * @Override getRole() from Person
+     */
+    @Override
+    public String getRole() {
+        return "Student";
     }
 
-    public String getFullName() {
-        return fullName;
+    /**
+     * @Override getDisplayInfo() from Person
+     * Adds course and year level info specific to students.
+     */
+    @Override
+    public String getDisplayInfo() {
+        return "[Student] " + fullName
+             + " | ID: "         + studentId
+             + " | Course: "     + course
+             + " | Year: "       + yearLevel
+             + " | Email: "      + email;
     }
 
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
-    }
+    // =========================================================
+    // STUDENT-SPECIFIC GETTERS & SETTERS
+    // =========================================================
+    public int    getId()                      { return id; }
+    public void   setId(int id)                { this.id = id; }
 
-    public String getCourse() {
-        return course;
-    }
+    public String getStudentId()               { return studentId; }
+    public void   setStudentId(String sid)     { this.studentId = sid; }
 
-    public void setCourse(String course) {
-        this.course = course;
-    }
+    public String getCourse()                  { return course; }
+    public void   setCourse(String course)     { this.course = course; }
 
-    public String getYearLevel() {
-        return yearLevel;
-    }
+    public String getYearLevel()               { return yearLevel; }
+    public void   setYearLevel(String yl)      { this.yearLevel = yl; }
 
-    public void setYearLevel(String yearLevel) {
-        this.yearLevel = yearLevel;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
-    }
-
+    // =========================================================
+    // toString (method overriding)
+    // =========================================================
     @Override
     public String toString() {
-        if (fullName != null && studentId != null) {
+        if (fullName != null && studentId != null)
             return fullName + " (" + studentId + ")";
-        }
         return studentId != null ? studentId : "";
     }
 }

@@ -35,9 +35,17 @@ import app.Main;
 import javafx.beans.property.SimpleStringProperty;
 import util.EventBus;
 
+import java.awt.Desktop;
+import java.io.File;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
+
+import javafx.stage.FileChooser;
+import javafx.stage.Stage;
+import javafx.stage.Window;
+import net.sf.jasperreports.engine.JRException;
+import report.ReportGenerator;
 
 public class TeacherUI {
 
@@ -576,6 +584,7 @@ public class TeacherUI {
             btnPresent.setDisable(false); btnLate.setDisable(false); btnAbsent.setDisable(false);
             sessionLabel.setText("Session #" + sid + " active  |  " + sessionDate);
             applyFilter.run();
+            EventBus.fireSessionChanged();
             showAlert("Session Started", "Attendance session created for " + sel.getClassCode() + " on " + sessionDate + ".");
         });
 
@@ -615,11 +624,17 @@ public class TeacherUI {
         Label title = new Label("Reports");
         title.setFont(Font.font("System", FontWeight.BOLD, 20));
 
+        Label subtitle = new Label("Available Templates");
+        subtitle.setFont(Font.font("System", FontWeight.BOLD, 16));
+
+        Label selectLabel = new Label("Select Report Type:");
+
         ComboBox<String> reportType = new ComboBox<>();
         reportType.getItems().addAll("Attendance", "Masterlist");
         reportType.setValue("Attendance");
+        reportType.setPrefWidth(300);
 
-        // Filters
+        // ── Attendance controls/table ───────────────────────────────
         HBox filters = new HBox(8); filters.setAlignment(Pos.CENTER_LEFT);
         ComboBox<Class> classFilter = new ComboBox<>();
         classFilter.setPromptText("Class");
@@ -644,7 +659,9 @@ public class TeacherUI {
 
         Button btnApply  = new Button("Apply");
         Button btnExport = new Button("Export CSV");
-        filters.getChildren().addAll(new Label("Filters:"), classFilter, courseFilter, yearFilter, sessionPicker, btnApply, btnExport);
+        Button btnExportReport = new Button("Export Report");
+        btnExportReport.getStyleClass().add("primary-button");
+        filters.getChildren().addAll(new Label("Filters:"), classFilter, courseFilter, yearFilter, sessionPicker, btnApply, btnExport, btnExportReport);
 
         // Table
         TableView<AttendanceRecord> reportTable = new TableView<>();
@@ -671,56 +688,142 @@ public class TeacherUI {
 
         populateCourseYear(getMyClasses(), courseFilter, yearFilter);
 
+        // Refresh session picker whenever sessions are created/deleted elsewhere (e.g. admin deletes a session)
+        Runnable refreshSessionPicker = () -> {
+            AttendanceSession selected = sessionPicker.getValue();
+            List<AttendanceSession> mySessions = getMySessions();
+            sessionPicker.setItems(FXCollections.observableArrayList(mySessions));
+            if (selected != null) {
+                boolean stillExists = mySessions.stream().anyMatch(s -> s.getId() == selected.getId());
+                if (!stillExists) {
+                    sessionPicker.getSelectionModel().clearSelection();
+                    sessionPicker.setValue(null);
+                    reportTable.setItems(FXCollections.observableArrayList());
+                }
+            }
+        };
+        EventBus.addSessionChangeListener(() -> Platform.runLater(refreshSessionPicker));
+
+        // ── Masterlist controls/table (mirrors admin layout, scoped to teacher's classes) ─────
+        FlowPane masterControls = new FlowPane(10, 10);
+        masterControls.setPrefWrapLength(800);
+
+        ComboBox<Class> masterClassCombo = new ComboBox<>();
+        masterClassCombo.setPrefWidth(300);
+        masterClassCombo.setItems(FXCollections.observableArrayList(getMyClasses()));
+        masterClassCombo.setPromptText("Select class (code - name)");
+
+        ComboBox<String> masterCourseCombo = new ComboBox<>();
+        masterCourseCombo.setPromptText("Course");
+        masterCourseCombo.setPrefWidth(160);
+
+        ComboBox<String> masterYearCombo = new ComboBox<>();
+        masterYearCombo.setPromptText("Year");
+        masterYearCombo.setPrefWidth(120);
+
+        Button btnApplyMaster = new Button("Apply Filter");
+        btnApplyMaster.getStyleClass().add("secondary-button");
+        btnApplyMaster.setMinHeight(36);
+
+        Button btnExportMasterPDF = new Button("Export Masterlist (PDF)");
+        btnExportMasterPDF.getStyleClass().add("primary-button");
+        btnExportMasterPDF.setMinHeight(36);
+
+        masterControls.getChildren().addAll(masterClassCombo, masterCourseCombo, masterYearCombo, btnApplyMaster, btnExportMasterPDF);
+
+        TableView<Student> masterTable = new TableView<>();
+        TableColumn<Student,String> mColId   = new TableColumn<>("STUDENT ID");
+        TableColumn<Student,String> mColName = new TableColumn<>("FULL NAME");
+        TableColumn<Student,String> mColEmail= new TableColumn<>("EMAIL");
+        mColId.setCellValueFactory(new PropertyValueFactory<>("studentId"));
+        mColName.setCellValueFactory(new PropertyValueFactory<>("fullName"));
+        mColEmail.setCellValueFactory(new PropertyValueFactory<>("email"));
+        masterTable.getColumns().addAll(mColId, mColName, mColEmail);
+        masterTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        masterTable.setMaxWidth(Double.MAX_VALUE);
+        VBox.setVgrow(masterTable, Priority.ALWAYS);
+        masterTable.setMinHeight(200);
+        masterTable.setPlaceholder(new Label("No students. Choose filters and click Apply Filter."));
+
+        // When master class selected, populate course/year filters scoped to that class
+        masterClassCombo.setOnAction(ev -> {
+            Class selected = masterClassCombo.getValue();
+            masterCourseCombo.getSelectionModel().clearSelection();
+            masterYearCombo.getSelectionModel().clearSelection();
+            masterCourseCombo.setValue(null);
+            masterYearCombo.setValue(null);
+            if (selected == null) {
+                masterCourseCombo.setItems(FXCollections.observableArrayList());
+                masterYearCombo.setItems(FXCollections.observableArrayList());
+                return;
+            }
+            ObservableList<String> courses = FXCollections.observableArrayList();
+            ObservableList<String> years   = FXCollections.observableArrayList();
+            for (model.Enrollment en : enrollmentDAO.getAllEnrollments()) {
+                if (en.getClassId() != selected.getId()) continue;
+                for (Student s : studentDAO.getAllStudents()) {
+                    if (s.getStudentId().equals(en.getStudentId())) {
+                        if (s.getCourse() != null && !s.getCourse().isEmpty() && !courses.contains(s.getCourse())) courses.add(s.getCourse());
+                        if (s.getYearLevel() != null && !s.getYearLevel().isEmpty() && !years.contains(s.getYearLevel())) years.add(s.getYearLevel());
+                    }
+                }
+            }
+            masterCourseCombo.setItems(courses);
+            masterYearCombo.setItems(years);
+        });
+
+        btnApplyMaster.setOnAction(ev -> {
+            Class c = masterClassCombo.getValue();
+            if (c == null) { showAlert("Validation", "Select a class to view masterlist."); return; }
+            if (!ownsClass(c)) { showAlert("Access Denied", "You can only view masterlists for your own classes."); return; }
+            String course = masterCourseCombo.getValue();
+            String year   = masterYearCombo.getValue();
+            ArrayList<Student> students = new ArrayList<>();
+            for (model.Enrollment en : enrollmentDAO.getAllEnrollments()) {
+                if (en.getClassId() != c.getId()) continue;
+                for (Student s : studentDAO.getAllStudents()) {
+                    if (s.getStudentId().equals(en.getStudentId())) {
+                        boolean ok = true;
+                        if (course != null && !course.isEmpty()) ok = ok && course.equals(s.getCourse());
+                        if (year   != null && !year.isEmpty())   ok = ok && year.equals(s.getYearLevel());
+                        if (ok) students.add(s);
+                        break;
+                    }
+                }
+            }
+            masterTable.setItems(FXCollections.observableArrayList(students));
+            if (students.isEmpty()) showAlert("No Data", "No students found for the selected filters.");
+        });
+
+        // ── Dynamic content area: swap between Attendance and Masterlist views ────
+        VBox dynamicArea = new VBox(10);
+        dynamicArea.getChildren().addAll(filters, reportTable);
+
+        reportType.setOnAction(e -> {
+            dynamicArea.getChildren().clear();
+            if ("Attendance".equals(reportType.getValue())) {
+                dynamicArea.getChildren().addAll(filters, reportTable);
+            } else {
+                dynamicArea.getChildren().addAll(masterControls, masterTable);
+            }
+        });
+
         btnApply.setOnAction(ev -> {
-            String type    = reportType.getValue();
             Integer classId = classFilter.getValue() == null ? null : classFilter.getValue().getId();
             String  course  = courseFilter.getValue();
             String  year    = yearFilter.getValue();
             String  sdate   = sessionPicker.getValue() == null ? null : sessionPicker.getValue().getSessionDate();
-
-            if ("Attendance".equals(type)) {
-                List<AttendanceRecord> rows = recordDAO.getAttendanceReport(teacherId, classId, course, year, sdate);
-                reportTable.setItems(FXCollections.observableArrayList(rows));
-            } else {
-                // Masterlist: students enrolled in teacher's classes only
-                List<AttendanceRecord> conv = new ArrayList<>();
-                Set<Integer> filterClassIds = new HashSet<>();
-                if (classId != null) {
-                    filterClassIds.add(classId);
-                } else {
-                    for (Class c : getMyClasses()) filterClassIds.add(c.getId());
-                }
-                Set<String> seen = new HashSet<>();
-                for (model.Enrollment en : enrollmentDAO.getAllEnrollments()) {
-                    if (!filterClassIds.contains(en.getClassId())) continue;
-                    for (Student s : studentDAO.getAllStudents()) {
-                        if (!s.getStudentId().equals(en.getStudentId())) continue;
-                        if (course != null && !course.isEmpty() && !course.equals(s.getCourse())) continue;
-                        if (year   != null && !year.isEmpty()   && !year.equals(s.getYearLevel())) continue;
-                        if (seen.add(s.getStudentId())) {
-                            AttendanceRecord ar = new AttendanceRecord();
-                            ar.setStudentId(s.getStudentId());
-                            ar.setFullName(s.getFullName());
-                            ar.setCourse(s.getCourse());
-                            ar.setYearLevel(s.getYearLevel());
-                            ar.setEmail(s.getEmail());
-                            ar.setStatus("");
-                            conv.add(ar);
-                        }
-                        break;
-                    }
-                }
-                reportTable.setItems(FXCollections.observableArrayList(conv));
-            }
+            List<AttendanceRecord> rows = recordDAO.getAttendanceReport(teacherId, classId, course, year, sdate);
+            reportTable.setItems(FXCollections.observableArrayList(rows));
         });
 
-        layout.getChildren().addAll(title, reportType, filters, reportTable);
+        layout.getChildren().addAll(title, card(subtitle, selectLabel, reportType, dynamicArea));
+
         btnExport.setOnAction(ev -> {
             if (reportTable.getItems() == null || reportTable.getItems().isEmpty()) { showAlert("Export", "No rows to export."); return; }
             javafx.stage.FileChooser fc = new javafx.stage.FileChooser();
             fc.setTitle("Export CSV");
-            String reportName = "Attendance".equals(reportType.getValue()) ? "attendance_report" : "masterlist";
-            fc.setInitialFileName(reportName + ".csv");
+            fc.setInitialFileName("attendance_report.csv");
             java.io.File f = fc.showSaveDialog(null); if (f == null) return;
             try (java.io.FileWriter fw = new java.io.FileWriter(f)) {
                 fw.write("student_id,full_name,course,year_level,email,status\n");
@@ -731,7 +834,89 @@ public class TeacherUI {
                 showAlert("Exported", "CSV saved to: " + f.getAbsolutePath());
             } catch (Exception ex) { showAlert("Error", "Export failed: " + ex.getMessage()); }
         });
+
+        // Export Report (Attendance PDF via JasperReports XML template)
+        btnExportReport.setOnAction(ev -> {
+            if (reportTable.getItems() == null || reportTable.getItems().isEmpty()) {
+                showAlert("No Data", "No rows to export. Apply filters first.");
+                return;
+            }
+
+            Class cls = classFilter.getValue();
+            Window window = layout.getScene() != null ? layout.getScene().getWindow() : null;
+
+            AttendanceSession selSession = sessionPicker.getValue();
+            if (selSession == null) {
+                showAlert("Validation", "Please select a session before exporting.");
+                return;
+            }
+
+            FileChooser fc = new FileChooser();
+            fc.setTitle("Save Attendance Report PDF");
+            fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF Files", "*.pdf"));
+            fc.setInitialFileName("attendance_report_" + System.currentTimeMillis() + ".pdf");
+            File dest = fc.showSaveDialog(window instanceof Stage ? (Stage) window : null);
+            if (dest == null) return;
+
+            try {
+                String out = dest.getAbsolutePath();
+                String subjectName = cls == null ? "" : cls.getClassName();
+                String professor   = teacherName == null ? "" : teacherName;
+                String classroom   = cls == null ? "" : cls.getRoom();
+                String schedule    = cls == null ? "" : cls.getSchedule();
+                String sDate       = selSession.getSessionDate();
+
+                ReportGenerator.generateAttendancePDF(reportTable.getItems(), out, subjectName, sDate, professor, classroom, schedule);
+                showAlert("Exported", "Attendance report saved to: " + out);
+                openFileInBrowser(new File(out));
+            } catch (JRException jre) {
+                showAlert("Export Error", "Failed to generate report: " + jre.getMessage());
+            } catch (Exception ex) {
+                showAlert("Export Error", "Failed to open report: " + ex.getMessage());
+            }
+        });
+
+        // Export Masterlist (PDF via JasperReports XML template)
+        btnExportMasterPDF.setOnAction(ev -> {
+            Class c = masterClassCombo.getValue();
+            if (c == null) { showAlert("Validation", "Select a class to export masterlist PDF."); return; }
+            if (!ownsClass(c)) { showAlert("Access Denied", "You can only export masterlists for your own classes."); return; }
+
+            ObservableList<Student> items = masterTable.getItems();
+            if (items == null || items.isEmpty()) { showAlert("No Data", "No students to export. Apply filters first."); return; }
+
+            Window window = layout.getScene() != null ? layout.getScene().getWindow() : null;
+            FileChooser fc = new FileChooser();
+            fc.setTitle("Save Masterlist PDF");
+            fc.getExtensionFilters().add(new FileChooser.ExtensionFilter("PDF Files", "*.pdf"));
+            fc.setInitialFileName("masterlist_" + c.getClassCode() + ".pdf");
+            File dest = fc.showSaveDialog(window instanceof Stage ? (Stage) window : null);
+            if (dest == null) return;
+
+            try {
+                String out = dest.getAbsolutePath();
+                ArrayList<Student> students = new ArrayList<>(items);
+                String classTitle = c.getClassCode() + " - " + c.getClassName();
+                ReportGenerator.generateStudentPDF(students, out, classTitle);
+                showAlert("Exported", "Masterlist report saved to: " + out);
+                openFileInBrowser(new File(out));
+            } catch (JRException jre) {
+                showAlert("Export Error", "Failed to generate masterlist report: " + jre.getMessage());
+            } catch (Exception ex) {
+                showAlert("Export Error", "Failed to open report: " + ex.getMessage());
+            }
+        });
+
         return layout;
+    }
+
+    /** Wraps the report-generation controls in a card container (mirrors admin Report Generation panel) */
+    private VBox card(Label subtitle, Label selectLabel, ComboBox<String> reportType, VBox dynamicArea) {
+        VBox card = new VBox(10);
+        card.getStyleClass().add("card");
+        card.setPadding(new Insets(16));
+        card.getChildren().addAll(subtitle, selectLabel, reportType, dynamicArea);
+        return card;
     }
 
     // =================================================================
@@ -815,6 +1000,17 @@ public class TeacherUI {
     private void showAlert(String title, String msg) {
         Alert a = new Alert(Alert.AlertType.INFORMATION);
         a.setTitle(title); a.setHeaderText(null); a.setContentText(msg); a.showAndWait();
+    }
+
+    private void openFileInBrowser(File f) {
+        try {
+            if (f == null) return;
+            if (Desktop.isDesktopSupported()) {
+                Desktop.getDesktop().open(f);
+            }
+        } catch (Exception e) {
+            System.out.println("openFileInBrowser error: " + e.getMessage());
+        }
     }
 
     private String safe(String s) { return s == null ? "" : s.replaceAll(",", " "); }

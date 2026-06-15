@@ -66,4 +66,21 @@ public class EventBus {
             try { r.run(); } catch (Exception ex) { /* ignore listener errors */ }
         }
     }
+
+    // Session change listeners (fired when attendance sessions are created/deleted)
+    private static CopyOnWriteArrayList<Runnable> sessionListeners = new CopyOnWriteArrayList<>();
+
+    public static void addSessionChangeListener(Runnable r) {
+        sessionListeners.addIfAbsent(r);
+    }
+
+    public static void removeSessionChangeListener(Runnable r) {
+        sessionListeners.remove(r);
+    }
+
+    public static void fireSessionChanged() {
+        for (Runnable r : sessionListeners) {
+            try { r.run(); } catch (Exception ex) { /* ignore listener errors */ }
+        }
+    }
 }

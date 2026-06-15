@@ -61,7 +61,7 @@ public class LoginUI {
         Label lblSignIn = new Label("Sign In");
         lblSignIn.setFont(Font.font("System", FontWeight.BOLD, 28));
         
-        Label lblWelcome = new Label("Welcome back admin! To get started, enter the following:");
+        Label lblWelcome = new Label("Welcome, User! To get started, enter the following:");
         lblWelcome.setWrapText(true);
         lblWelcome.setStyle("-fx-text-fill: #475569;");
 

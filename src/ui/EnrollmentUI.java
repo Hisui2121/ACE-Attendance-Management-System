@@ -64,6 +64,8 @@ public class EnrollmentUI {
 
             VBox layout = new VBox(12);
             layout.setPadding(new Insets(20));
+            layout.setFillWidth(true);
+            VBox.setVgrow(layout, Priority.ALWAYS);
 
             Label title = new Label("Enrollment Management");
             title.setFont(Font.font("System", FontWeight.BOLD, 24));
@@ -230,38 +232,17 @@ public class EnrollmentUI {
             });
 
             // Ensure TableView has a visible preferred height so rows render in constrained layouts
-            enrolledTable.setMinHeight(200);
-            enrolledTable.setPrefHeight(400);
+            enrolledTable.setMinHeight(470);
+            enrolledTable.setPrefHeight(470);
              enrolledTable.setMaxHeight(Double.MAX_VALUE);
              // Ensure items are bound after columns are set
              enrolledTable.setItems(enrolledItems);
 
-            // Adjust table preferred height when items change so rows become visible
-            enrolledItems.addListener((javafx.collections.ListChangeListener.Change<? extends Enrollment> ch) -> {
-                int size = enrolledItems.size();
-                double newPref = Math.min(800, Math.max(200, size * enrolledTable.getFixedCellSize() + 100));
-                Platform.runLater(() -> {
-                    enrolledTable.setPrefHeight(newPref);
-                    enrolledTable.refresh();
-                });
-            });
-
              // Make the table expand to fill the available space
              enrolledTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
-             // allow the table to grow to fill parent VBox; set very large pref/max to force expansion
-            enrolledTable.setPrefHeight(Double.MAX_VALUE);
-            enrolledTable.setMaxHeight(Double.MAX_VALUE);
+             enrolledTable.setPrefHeight(Double.MAX_VALUE);
+             enrolledTable.setMaxHeight(Double.MAX_VALUE);
              VBox.setVgrow(enrolledTable, Priority.ALWAYS);
-
-            // Use a BorderPane inside the VBox so the table occupies the full remaining area
-            BorderPane bp = new BorderPane();
-            VBox topBox = new VBox(6, title, enrollControls);
-            topBox.setPadding(new Insets(0));
-            bp.setTop(topBox);
-            bp.setCenter(enrolledTable);
-            bp.setPrefHeight(Double.MAX_VALUE);
-            VBox.setVgrow(bp, Priority.ALWAYS);
-            layout.getChildren().add(bp);
 
             // Wire controls
             enrollBtn.setOnAction(a -> {
@@ -293,6 +274,9 @@ public class EnrollmentUI {
             studentDropdownField.setItems(studentsList);
             ObservableList<Class> classes = FXCollections.observableArrayList(classDAO.getAllClasses());
             classDropdownField.setItems(classes);
+
+            // Add children directly so the table fills all remaining vertical space
+            layout.getChildren().addAll(title, enrollControls, enrolledTable);
 
             // initial load
             loadCombos();

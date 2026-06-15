@@ -21,7 +21,7 @@ public class ReportGenerator {
 	        String schedule) throws JRException {
 
 	    JasperReport jasperReport = JasperCompileManager.compileReport(
-	        "reports/attendance_report.jrxml"
+	        "reports/attendance_report.xml"
 	    );
 
 	    JRBeanCollectionDataSource dataSource = new JRBeanCollectionDataSource(data);
@@ -48,7 +48,7 @@ public class ReportGenerator {
     public static void generateStudentPDF(ArrayList<Student> students, String outputPath, String classTitle) throws JRException {
 
         JasperReport jasperReport = JasperCompileManager.compileReport(
-            "reports/student_list_report.jrxml"
+            "reports/student_list_report.xml"
         );
 
         JRBeanCollectionDataSource dataSource =
