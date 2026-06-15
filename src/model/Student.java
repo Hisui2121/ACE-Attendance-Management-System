@@ -64,11 +64,37 @@ public class Student extends Person {
         this.yearLevel = yearLevel;
     }
 
+    /**
+     * POLYMORPHISM & METHOD OVERRIDING:
+     * Overrides abstract method from Person class
+     * This is DYNAMIC BINDING - runtime determines actual method called
+     */
     @Override
     public String getDescription() {
         return "Student: " + getFullName() +
                " [" + studentId + "] - " + course +
                " " + yearLevel + " (" + getEmail() + ")";
+    }
+
+    /**
+     * POLYMORPHISM & METHOD OVERRIDING:
+     * Implements the abstract getRole() method from Person
+     */
+    @Override
+    public String getRole() {
+        return "STUDENT";
+    }
+
+    /**
+     * POLYMORPHISM: Overrides getInfo() from Person class
+     * Provides student-specific information display
+     */
+    @Override
+    public String getInfo() {
+        return super.getInfo() +
+               "\nStudent ID: " + studentId +
+               "\nCourse: " + course +
+               "\nYear Level: " + yearLevel;
     }
 
     @Override

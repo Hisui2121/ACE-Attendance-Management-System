@@ -52,12 +52,7 @@ public class RolePermission {
         ));
         rolePermissions.put(Role.TEACHER, teacherPermissions);
 
-        // STUDENT - Can only view their own attendance
-        Set<Permission> studentPermissions = new HashSet<>(Arrays.asList(
-            Permission.VIEW_ATTENDANCE,
-            Permission.VIEW_REPORTS
-        ));
-        rolePermissions.put(Role.STUDENT, studentPermissions);
+
     }
 
     public static boolean hasPermission(Role role, Permission permission) {

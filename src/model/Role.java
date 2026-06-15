@@ -2,8 +2,7 @@ package model;
 
 public enum Role {
     ADMIN("admin", "Administrator - Full system access"),
-    TEACHER("teacher", "Teacher - Manage attendance for own classes"),
-    STUDENT("student", "Student - View own attendance only");
+    TEACHER("teacher", "Teacher - Manage attendance for own classes");
 
     private final String code;
     private final String description;
