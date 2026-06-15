@@ -1,17 +1,14 @@
 package model;
 
-public class Student {
+public class Student extends Person {
 
-    private int id;
     private String studentId;
-    private String fullName;
     private String course;
     private String yearLevel;
-    private String email;
 
     // EMPTY CONSTRUCTOR
     public Student() {
-
+        super();
     }
 
     // CONSTRUCTOR WITHOUT DB ID
@@ -20,12 +17,10 @@ public class Student {
                    String course,
                    String yearLevel,
                    String email) {
-
+        super(fullName, email);
         this.studentId = studentId;
-        this.fullName = fullName;
         this.course = course;
         this.yearLevel = yearLevel;
-        this.email = email;
     }
 
     // FULL CONSTRUCTOR
@@ -35,26 +30,15 @@ public class Student {
                    String course,
                    String yearLevel,
                    String email) {
-
-        this.id = id;
+        super(id, fullName, email);
         this.studentId = studentId;
-        this.fullName = fullName;
         this.course = course;
         this.yearLevel = yearLevel;
-        this.email = email;
     }
 
     // =========================
     // GETTERS & SETTERS
     // =========================
-
-    public int getId() {
-        return id;
-    }
-
-    public void setId(int id) {
-        this.id = id;
-    }
 
     public String getStudentId() {
         return studentId;
@@ -62,14 +46,6 @@ public class Student {
 
     public void setStudentId(String studentId) {
         this.studentId = studentId;
-    }
-
-    public String getFullName() {
-        return fullName;
-    }
-
-    public void setFullName(String fullName) {
-        this.fullName = fullName;
     }
 
     public String getCourse() {
@@ -88,11 +64,22 @@ public class Student {
         this.yearLevel = yearLevel;
     }
 
-    public String getEmail() {
-        return email;
+    @Override
+    public String getDescription() {
+        return "Student: " + getFullName() +
+               " [" + studentId + "] - " + course +
+               " " + yearLevel + " (" + getEmail() + ")";
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    @Override
+    public String toString() {
+        return "Student{" +
+                "id=" + getId() +
+                ", studentId='" + studentId + '\'' +
+                ", fullName='" + getFullName() + '\'' +
+                ", email='" + getEmail() + '\'' +
+                ", course='" + course + '\'' +
+                ", yearLevel='" + yearLevel + '\'' +
+                '}';
     }
 }
