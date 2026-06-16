@@ -33,11 +33,15 @@ import report.ReportGenerator;
 import net.sf.jasperreports.engine.JRException;
 import model.Student;
 
-public class ReportUI {
+import report.JasperReportEngine;
 
+public class ReportUI {
+	
+	
     private AttendanceSessionDAO sessionDAO = new AttendanceSessionDAO();
     private AttendanceRecordDAO recordDAO = new AttendanceRecordDAO();
     private ClassDAO classDAO = new ClassDAO();
+    private ReportGenerator reportGenerator = new ReportGenerator(new JasperReportEngine());
 
     public VBox getView() {
         VBox layout = new VBox(20);
@@ -694,7 +698,15 @@ public class ReportUI {
                 String schedule = cls == null ? "" : cls.getSchedule();
                 String sDate = selectedSession.getSessionDate();
 
-                ReportGenerator.generateAttendancePDF(rows, out, subjectName, sDate, professor, classroom, schedule);
+                reportGenerator.generateAttendancePDF(
+                        rows,
+                        out,
+                        subjectName,
+                        sDate,
+                        professor,
+                        classroom,
+                        schedule
+                );
                 showAlert("Exported", "Attendance PDF saved to: " + out);
                 openFileInBrowser(new File(out));
             } catch (JRException jre) {
@@ -732,7 +744,7 @@ public class ReportUI {
                 String out = dest.getAbsolutePath();
                 ArrayList<Student> students = new ArrayList<>(items);
                 String classTitle = c.getClassCode() + " - " + c.getClassName();
-                ReportGenerator.generateStudentPDF(students, out, classTitle);
+                reportGenerator.generateStudentPDF(students, out, classTitle);
                 showAlert("Exported", "Masterlist PDF saved to: " + out);
                 openFileInBrowser(new File(out));
             } catch (JRException jre) {

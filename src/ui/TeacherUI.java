@@ -45,6 +45,7 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import net.sf.jasperreports.engine.JRException;
+import report.JasperReportEngine;
 import report.ReportGenerator;
 
 public class TeacherUI {
@@ -72,6 +73,8 @@ public class TeacherUI {
 
     // Cached list of classes owned by this teacher (populated once per login)
     private List<Class> myClasses = null;
+    
+    private ReportGenerator reportGenerator = new ReportGenerator(new JasperReportEngine());
 
     public TeacherUI() {
         AuthenticationService auth = AuthenticationService.getInstance();
@@ -864,7 +867,15 @@ public class TeacherUI {
                 String schedule    = cls == null ? "" : cls.getSchedule();
                 String sDate       = selSession.getSessionDate();
 
-                ReportGenerator.generateAttendancePDF(reportTable.getItems(), out, subjectName, sDate, professor, classroom, schedule);
+                reportGenerator.generateAttendancePDF(
+                	    reportTable.getItems(),
+                	    out,
+                	    subjectName,
+                	    sDate,
+                	    professor,
+                	    classroom,
+                	    schedule
+                	);
                 showAlert("Exported", "Attendance report saved to: " + out);
                 openFileInBrowser(new File(out));
             } catch (JRException jre) {
@@ -895,7 +906,7 @@ public class TeacherUI {
                 String out = dest.getAbsolutePath();
                 ArrayList<Student> students = new ArrayList<>(items);
                 String classTitle = c.getClassCode() + " - " + c.getClassName();
-                ReportGenerator.generateStudentPDF(students, out, classTitle);
+                reportGenerator.generateStudentPDF(students, out, classTitle);
                 showAlert("Exported", "Masterlist report saved to: " + out);
                 openFileInBrowser(new File(out));
             } catch (JRException jre) {
